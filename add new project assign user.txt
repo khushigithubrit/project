@@ -1,0 +1,43 @@
+# models.py (update)
+from django.contrib.auth.models import User
+
+class Project(models.Model):
+    client = models.ForeignKey(Client, on_delete=models.CASCADE, related_name='projects')
+    name = models.CharField(max_length=100)
+    users = models.ManyToManyField(User)
+
+# serializers.py (update)
+from django.contrib.auth.models import User
+
+class UserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = '__all__'
+
+class ProjectSerializer(serializers.ModelSerializer):
+    users = UserSerializer(many=True)
+
+    class Meta:
+        model = Project
+        fields = '__all__'
+
+    def create(self, validated_data):
+        users_data = validated_data.pop('users')
+        project = Project.objects.create(**validated_data)
+        for user_data in users_data:
+            user = User.objects.get(pk=user_data['id'])
+            project.users.add(user)
+        return project
+
+# views.py (update)
+from rest_framework import generics
+from .models import Project
+from .serializers import ProjectSerializer
+
+class ProjectListCreateAPIView(generics.ListCreateAPIView):
+    queryset = Project.objects.all()
+    serializer_class = ProjectSerializer
+
+class ProjectRetrieveUpdateDestroyAPIView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Project.objects.all()
+    serializer_class = ProjectSerializer

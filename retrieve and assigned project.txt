@@ -1,0 +1,15 @@
+# serializers.py (update)
+class ProjectSerializer(serializers.ModelSerializer):
+    users = UserSerializer(many=True)
+
+    class Meta:
+        model = Project
+        fields = '__all__'
+
+    def to_representation(self, instance):
+        # Filter projects based on the currently logged-in user
+        request = self.context.get('request')
+        user = request.user
+        filtered_users = instance.users.filter(id=user.id)
+        instance.users.set(filtered_users)
+        return super().to_representation(instance)

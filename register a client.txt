@@ -1,0 +1,24 @@
+# models.py
+from django.db import models
+
+class Client(models.Model):
+    name = models.CharField(max_length=100)
+    # Add more fields as required
+
+# serializers.py
+from rest_framework import serializers
+from .models import Client
+
+class ClientSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Client
+        fields = '__all__'
+
+# views.py
+from rest_framework import viewsets
+from .models import Client
+from .serializers import ClientSerializer
+
+class ClientViewSet(viewsets.ModelViewSet):
+    queryset = Client.objects.all()
+    serializer_class = ClientSerializer

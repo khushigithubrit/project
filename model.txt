@@ -1,0 +1,136 @@
+from django.contrib.auth.models import User
+from django.db import models
+
+class Client(models.Model):
+    name = models.CharField(max_length=100)
+    # Add more fields as required
+
+class Project(models.Model):
+    client = models.ForeignKey(Client, on_delete=models.CASCADE)
+    name = models.CharField(max_length=100)
+    users = models.ManyToManyField(User)
+
+
+
+
+
+
+
+
+#Update the views to handle the relationships between entities:
+
+
+
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import render, redirect, get_object_or_404
+from .forms import ClientForm, ProjectForm
+from .models import Client, Project
+
+# Register a client
+def register_client(request):
+    if request.method == 'POST':
+        form = ClientForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('client_info')
+    else:
+        form = ClientForm()
+    return render(request, 'register_client.html', {'form': form})
+
+# Fetch clients info
+def client_info(request):
+    clients = Client.objects.all()
+    return render(request, 'client_info.html', {'clients': clients})
+
+# Edit client info
+def edit_client(request, client_id):
+    client = get_object_or_404(Client, id=client_id)
+    if request.method == 'POST':
+        form = ClientForm(request.POST, instance=client)
+        if form.is_valid():
+            form.save()
+            return redirect('client_info')
+    else:
+        form = ClientForm(instance=client)
+    return render(request, 'edit_client.html', {'form': form, 'client': client})
+
+# Delete client info
+def delete_client(request, client_id):
+    client = get_object_or_404(Client, id=client_id)
+    if request.method == 'POST':
+        client.delete()
+        return redirect('client_info')
+    return render(request, 'delete_client.html', {'client': client})
+
+# Add new projects for a client and assign users to those projects
+def add_project(request, client_id):
+    client = get_object_or_404(Client, id=client_id)
+    if request.method == 'POST':
+        form = ProjectForm(request.POST)
+        if form.is_valid():
+            project = form.save(commit=False)
+            project.client = client
+            project.save()
+            form.save_m2m()
+            return redirect('client_info')
+    else:
+        form = ProjectForm()
+    return render(request, 'add_project.html', {'form': form, 'client': client})
+
+# Retrieve assigned projects to logged-in users
+@login_required
+def assigned_projects(request):
+    projects = Project.objects.filter(users=request.user)
+    return render(request, 'assigned_projects.html', {'projects': projects})
+
+
+
+
+
+
+
+
+#update the forms to include the necessary fields 
+
+
+from django import forms
+from .models import Client, Project
+
+class ClientForm(forms.ModelForm):
+    class Meta:
+        model = Client
+        fields = ['name']
+
+class ProjectForm(forms.ModelForm):
+    class Meta:
+        model = Project
+        fields = ['name', 'users']
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//    Ensure that you have the corresponding HTML templates (register_client.html, client_info.html, edit_client.html, delete_client.html, add_project.html, assigned_projects.html) and update the URLs in your Django project's urls.py file accordingly.
+
+//  These updates will allow you to handle the relationships between users, clients, and projects as specified in the considerations you provided. 

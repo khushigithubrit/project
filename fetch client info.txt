@@ -1,0 +1,12 @@
+# serializers.py (update)
+class ClientSerializer(serializers.ModelSerializer):
+    projects = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
+
+    class Meta:
+        model = Client
+        fields = '__all__'
+
+# views.py (update)
+class ClientViewSet(viewsets.ModelViewSet):
+    queryset = Client.objects.all()
+    serializer_class = ClientSerializer

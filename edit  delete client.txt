@@ -1,0 +1,8 @@
+# views.py (update)
+class ClientViewSet(viewsets.ModelViewSet):
+    queryset = Client.objects.all()
+    serializer_class = ClientSerializer
+
+    def perform_destroy(self, instance):
+        # Perform additional operations before client deletion if needed
+        instance.delete()
